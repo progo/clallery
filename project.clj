@@ -6,6 +6,7 @@
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [me.raynes/conch "0.6.0"]
                  [me.raynes/fs "1.4.4"]
+                 [gaka "0.3.0"]
                  [org.clojure/tools.cli "0.2.4"]
                  [hiccup "1.0.4"]]
   :main clallery.core)

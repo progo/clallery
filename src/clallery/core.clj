@@ -1,6 +1,7 @@
 (ns clallery.core
   (:require [me.raynes.conch :refer [programs with-programs]]
             [me.raynes.fs :as fs]
+            [gaka.core :as gaka]
             [clojure.tools.cli :as cli :refer [cli]]
             [hiccup.core :as h])
   (:import [java.io File])
@@ -10,7 +11,7 @@
 (def file-extensions #{"jpg" "jpeg"})
 
 ;; Width of a thumbnail
-(def thumb-size "200x")
+(def thumb-size "400x")
 
 ;; dirname of thumbnails under output
 (def thumb-dir-name "thumbs")
@@ -74,18 +75,48 @@
   []
   (print (rand-nth ":._")))
 
-(defn make-the-html
+(def gallery-css
+  [[:#pics
+    {:display :inline
+     :margin 0
+     :padding 0}
+    [:li
+     {:margin "10px"}]]
+   [:#single-pic
+    [:img
+     {:width "100%"
+      :height "auto"}]]
+   [:body
+    {:background-color "#333"}]])
+
+(defn single-html
+  [args prev this next]
+  (let [out-dir (:output-dir args)
+        ]
+    (h/html
+     [:html
+      [:head
+       [:style (apply str (map gaka/css gallery-css))]]
+      [:body
+       [:div#single-pic
+        [:img {:src this}]]]])))
+
+(defn gallery-html
   [args]
   (let [out-dir (:output-dir args)
-        pic-files (all-good-files out-dir)]
+        pic-files (sort (all-good-files out-dir))]
     (h/html
-     [:body
-      [:ul#pics
-       (for [pic-file pic-files]
-         [:li
-          [:a {:href (.getName pic-file)}
-           [:img {:src (join-paths thumb-dir-name
-                                   (.getName pic-file))}]]])]])))
+     [:html
+      [:head
+       [:style (apply str (map gaka/css gallery-css))]
+       [:title out-dir]]
+      [:body
+       [:ul#pics
+        (for [pic-file pic-files]
+          [:li
+           [:a {:href (str (.getName pic-file))}
+            [:img {:src (join-paths thumb-dir-name
+                                    (.getName pic-file))}]]])]]])))
 
 (defmacro verbosely
   [& body]
@@ -119,6 +150,6 @@
     (verbosely "")
     (verbosely "Generating the HTML")
     (spit (join-paths output-dir "index.html")
-          (make-the-html args))
+          (gallery-html args))
     (verbosely "All done!")
     (System/exit 0)))
